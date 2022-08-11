@@ -121,9 +121,9 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '10/minute',
         'user': '10/minute',
-        'category_rate': '10/minute',
-        'product_rate': '5/minute',
-        'order_rate': '2/minute'
+        'category_rate': '1000/minute',
+        'product_rate': '500/minute',
+        'order_rate': '200/minute'
     },
 }
 

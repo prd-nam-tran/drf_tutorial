@@ -32,19 +32,14 @@ class OrderViewSet(viewsets.ModelViewSet):
             raise Http404
         return order
 
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user, updated_by=self.request.user)
-
-    def perform_update(self, serializer):
-        serializer.save(updated_by=self.request.user)
-
     def create(self, request, *args, **kwargs):
         serializer = OrderSerializer(data=request.data)
 
         if serializer.is_valid():
             data = serializer.validated_data
-            data['total_price'] = OrderService.calculate_total_price(data)
-            serializer.save()
+            serializer.save(total_price=OrderService.calculate_total_price(data),
+                            created_by=self.request.user,
+                            updated_by=self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(dict(errors=serializer.errors), status.HTTP_400_BAD_REQUEST)
@@ -55,8 +50,8 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             data = serializer.validated_data
-            data['total_price'] = OrderService.calculate_total_price(data)
-            serializer.save()
+            serializer.save(total_price=OrderService.calculate_total_price(data),
+                            updated_by=self.request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.data)

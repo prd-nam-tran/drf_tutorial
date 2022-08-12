@@ -6,3 +6,4 @@ class OrderStatus(Enum):
     ORDERED = 'ORDERED'
     PENDING = 'PENDING'
     CANCELED = 'CANCELED'
+    PAID = 'PAID'

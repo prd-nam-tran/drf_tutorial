@@ -1,10 +1,12 @@
 from django.http import Http404
 from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from e_order.services.order import OrderService
 from e_product.models import Product
+from e_product.serializers.bulk_create import BulkCreateProductSerializer
 from e_product.serializers.product import ProductSerializer
 from ecommerce.throttles.product import ProductRateThrottle
 
@@ -38,7 +40,15 @@ class ProductViewSet(viewsets.ModelViewSet):
         product.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # @action(detail=False, methods=['POST'], url_path='bulk_create')
-    # def bulk_create(self, request):
-    #     print(request.data)
-    #     return Response(status=status.HTTP_201_CREATED)
+    @action(detail=False, methods=['POST'], url_path='bulk_create',
+            serializer_class=BulkCreateProductSerializer)
+    def bulk_create(self, request):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            products = [Product(**product) for product in serializer.validated_data.get('products', [])]
+            Product.objects.bulk_create(products)
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(dict(errors=serializer.errors), status.HTTP_400_BAD_REQUEST)

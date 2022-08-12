@@ -13,13 +13,12 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['deleted']
 
-    def to_internal_value(self, data):
-        product_id = data.get('product', None)
-
-        if not product_id:
-            raise serializers.ValidationError({'product_id': "This field is required."})
-
+    def validate(self, data):
+        product_id = data.get('product').id
         if product_id and not ProductService.exists_by_id(product_id):
             raise serializers.ValidationError({'product': 'Object does not exist.'})
 
-        return super().to_internal_value(data)
+        if ProductService.exists_product_name(self.instance, data):
+            raise serializers.ValidationError({'name': "This product name already exist."})
+
+        return data

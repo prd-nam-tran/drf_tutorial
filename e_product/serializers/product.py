@@ -13,18 +13,11 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only_fields = ['deleted']
 
     def validate(self, data):
+        category_id = data.get('category').id
+        if category_id and not CategoryService.exists_by_id(category_id):
+            raise serializers.ValidationError({'category': 'Object does not exist.'})
+
         if ProductService.exists_product_name(self.instance, data):
             raise serializers.ValidationError({'name': "This product name already exist."})
 
         return data
-
-    def to_internal_value(self, data):
-        category_id = data.get('category', None)
-
-        if not category_id:
-            raise serializers.ValidationError({'category_id': "This field is required."})
-
-        if category_id and not CategoryService.exists_by_id(category_id):
-            raise serializers.ValidationError({'category': 'Object does not exist.'})
-
-        return super().to_internal_value(data)
